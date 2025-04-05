@@ -29,14 +29,11 @@ public class NotificationTaskService {
     public SendMessage getResponseStartMessage(Long chatId) {
         logger.info("Отправка приветственного сообщения в chatId: {}", chatId);
         String response = "Добро пожаловать в учебный проект";
-
         return new SendMessage(chatId, response);
     }
 
     /* Добавление задачи в бд(Список дел)*/
     public SendMessage addTaskToTheToDoList(String messageText, Long chatId) {
-        // Сообщение для пользователя
-        SendMessage sendMessage;
         // Паттерн для работы с временем
         Pattern dateTimePattern = Pattern.compile("^(\\d{2}\\.\\d{2}\\.\\d{4} \\d{2}:\\d{2})\\s+(.+)$");
         // Разбиение строки на дату и задачу
@@ -61,20 +58,18 @@ public class NotificationTaskService {
 
             // Возвращение сообщения пользователю
             String response = "Задача создана";
-            sendMessage = new SendMessage(chatId, response);
-            return sendMessage;
+            return new SendMessage(chatId, response);
 
         } else {
-            logger.info("Запрос переданный пользователем некорректен");
+            logger.debug("Запрос переданный пользователем некорректен");
 
-            String response = "Формат задачи введен неправильно, попробуйте: 01.01.2022 20:00 Сделать домашнюю работу";
-            sendMessage = new SendMessage(chatId, response);
-
-            return sendMessage;
+            String response = "Формат задачи введен неправильно, попробуйте в таком формате:" +
+                    " 01.01.2022 20:00 Сделать домашнюю работу";
+            return new SendMessage(chatId, response);
         }
     }
 
-    /* Обработка уведомлений, которые необходимо выслать*/
+    /* Обработка уведомлений, которые необходимо отослать пользователю*/
     public List<SendMessage> sendingScheduledTask() {
         LocalDateTime localDateTimeNow = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
         List<Notification_tasks> notifications = notificationTaskRepository.findByNotification_time(localDateTimeNow);
@@ -84,8 +79,7 @@ public class NotificationTaskService {
                     .map(task -> {
                         Long chatId = task.getChat_id();
                         String message = task.getMessage();
-                        SendMessage sendMessage = new SendMessage(chatId, message);
-                        return sendMessage;
+                        return new SendMessage(chatId, message);
                     })
                     .collect(Collectors.toList());
         }
