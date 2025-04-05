@@ -10,8 +10,13 @@ import pro.sky.telegrambot.repository.NotificationTaskRepository;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class NotificationTaskService {
@@ -20,14 +25,15 @@ public class NotificationTaskService {
     @Autowired
     private NotificationTaskRepository notificationTaskRepository;
 
-
+    /*  Получение стартового сообщения */
     public SendMessage getResponseStartMessage(Long chatId) {
         logger.info("Отправка приветственного сообщения в chatId: {}", chatId);
         String response = "Добро пожаловать в учебный проект";
-        SendMessage sendMessage = new SendMessage(chatId, response);
-        return sendMessage;
+
+        return new SendMessage(chatId, response);
     }
 
+    /* Добавление задачи в бд(Список дел)*/
     public SendMessage addTaskToTheToDoList(String messageText, Long chatId) {
         // Сообщение для пользователя
         SendMessage sendMessage;
@@ -45,6 +51,7 @@ public class NotificationTaskService {
             LocalDateTime localDateTime = LocalDateTime
                     .parse(responseDateTime, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
 
+            // Сохранение задачи в БД
             notificationTasks.setChat_id(chatId);
             notificationTasks.setNotification_time(localDateTime);
             notificationTasks.setMessage(responseMessage);
@@ -52,6 +59,7 @@ public class NotificationTaskService {
 
             logger.info("Задача от чата {}, с наименование {}, создана на {}", chatId, responseMessage, localDateTime);
 
+            // Возвращение сообщения пользователю
             String response = "Задача создана";
             sendMessage = new SendMessage(chatId, response);
             return sendMessage;
@@ -64,5 +72,22 @@ public class NotificationTaskService {
 
             return sendMessage;
         }
+    }
+
+    public List<SendMessage> sendingScheduledTask() {
+        LocalDateTime localDateTimeNow = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
+        List<Notification_tasks> notifications = notificationTaskRepository.findByNotification_time(localDateTimeNow);
+
+        if (!notifications.isEmpty()) {
+            return notifications.stream()
+                    .map(task -> {
+                        Long chatId = task.getChat_id();
+                        String message = task.getMessage();
+                        SendMessage sendMessage = new SendMessage(chatId, message);
+                        return sendMessage;
+                    })
+                    .collect(Collectors.toList());
+        }
+        return Collections.emptyList();
     }
 }
