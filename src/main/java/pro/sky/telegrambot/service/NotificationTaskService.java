@@ -3,8 +3,9 @@ package pro.sky.telegrambot.service;
 import com.pengrad.telegrambot.request.SendMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import pro.sky.telegrambot.model.NotificationTask;
+import pro.sky.telegrambot.model.Notification_tasks;
 import pro.sky.telegrambot.repository.NotificationTaskRepository;
 
 import java.time.LocalDateTime;
@@ -16,11 +17,9 @@ import java.util.regex.Pattern;
 public class NotificationTaskService {
     Logger logger = LoggerFactory.getLogger(NotificationTaskService.class);
 
+    @Autowired
     private NotificationTaskRepository notificationTaskRepository;
 
-    public NotificationTaskService(NotificationTaskRepository notificationTaskRepository) {
-        this.notificationTaskRepository = notificationTaskRepository;
-    }
 
     public SendMessage getResponseStartMessage(Long chatId) {
         logger.info("Отправка приветственного сообщения в chatId: {}", chatId);
@@ -38,25 +37,28 @@ public class NotificationTaskService {
         Matcher matcher = dateTimePattern.matcher(messageText);
 
         if (matcher.matches()) {
-            NotificationTask notificationTask = new NotificationTask();
+            Notification_tasks notificationTasks = new Notification_tasks();
             String responseDateTime = matcher.group(1);
             String responseMessage = matcher.group(2);
 
             //Преобразование строки в формат даты и время
             LocalDateTime localDateTime = LocalDateTime
-                    .parse(responseDateTime, DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm"));
+                    .parse(responseDateTime, DateTimeFormatter.ofPattern("dd.MM.yyyy HH:mm"));
 
-            notificationTask.setChat_id(chatId);
-            notificationTask.setNotification_time(localDateTime);
-            notificationTask.setMessage(responseMessage);
+            notificationTasks.setChat_id(chatId);
+            notificationTasks.setNotification_time(localDateTime);
+            notificationTasks.setMessage(responseMessage);
+            notificationTaskRepository.save(notificationTasks);
 
-            notificationTaskRepository.save(notificationTask);
+            logger.info("Задача от чата {}, с наименование {}, создана на {}", chatId, responseMessage, localDateTime);
 
             String response = "Задача создана";
             sendMessage = new SendMessage(chatId, response);
             return sendMessage;
 
         } else {
+            logger.info("Запрос переданный пользователем некорректен");
+
             String response = "Формат задачи введен неправильно, попробуйте: 01.01.2022 20:00 Сделать домашнюю работу";
             sendMessage = new SendMessage(chatId, response);
 
