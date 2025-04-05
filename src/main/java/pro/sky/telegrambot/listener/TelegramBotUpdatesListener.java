@@ -41,7 +41,7 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
     }
 
     public void getResponseStartMessage(Long chatId) {
-        logger.info("getResponseStartMessage chatId: {}", chatId);
+        logger.info("Отправка приветственного сообщения в chatId: {}", chatId);
 
         String response = "Добро пожаловать в учебный проект";
         SendMessage sendMessage = new SendMessage(chatId, response);
