@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import pro.sky.telegrambot.service.NotificationTaskService;
 
 import javax.annotation.PostConstruct;
 import java.util.List;
@@ -16,6 +17,9 @@ import java.util.List;
 public class TelegramBotUpdatesListener implements UpdatesListener {
 
     private final Logger logger = LoggerFactory.getLogger(TelegramBotUpdatesListener.class);
+
+    @Autowired
+    NotificationTaskService notificationTaskService;
 
     @Autowired
     private TelegramBot telegramBot;
@@ -33,19 +37,12 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             Long chatId = update.message().chat().id();
 
             if (messageText.equals("/start")) {
-                getResponseStartMessage(chatId);
+                telegramBot.execute(notificationTaskService.getResponseStartMessage(chatId));
             }
 
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
 
-    public void getResponseStartMessage(Long chatId) {
-        logger.info("Отправка приветственного сообщения в chatId: {}", chatId);
 
-        String response = "Добро пожаловать в учебный проект";
-        SendMessage sendMessage = new SendMessage(chatId, response);
-
-        telegramBot.execute(sendMessage);
-    }
 }
