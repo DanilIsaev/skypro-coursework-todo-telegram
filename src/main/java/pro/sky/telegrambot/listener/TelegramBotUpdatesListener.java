@@ -38,6 +38,8 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
 
             if (messageText.equals("/start")) {
                 telegramBot.execute(notificationTaskService.getResponseStartMessage(chatId));
+            } else {
+                telegramBot.execute(notificationTaskService.addTaskToTheToDoList(messageText, chatId));
             }
 
         });
