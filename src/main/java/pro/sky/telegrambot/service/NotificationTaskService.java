@@ -74,6 +74,7 @@ public class NotificationTaskService {
         }
     }
 
+    /* Обработка уведомлений, которые необходимо выслать*/
     public List<SendMessage> sendingScheduledTask() {
         LocalDateTime localDateTimeNow = LocalDateTime.now().truncatedTo(ChronoUnit.MINUTES);
         List<Notification_tasks> notifications = notificationTaskRepository.findByNotification_time(localDateTimeNow);

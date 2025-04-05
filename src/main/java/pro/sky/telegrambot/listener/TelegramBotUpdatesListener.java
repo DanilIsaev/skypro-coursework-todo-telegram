@@ -42,15 +42,16 @@ public class TelegramBotUpdatesListener implements UpdatesListener {
             } else {
                 telegramBot.execute(notificationTaskService.addTaskToTheToDoList(messageText, chatId));
             }
-
         });
         return UpdatesListener.CONFIRMED_UPDATES_ALL;
     }
 
     @Scheduled(cron = "0 0/1 * * * *")
     public void checkToDO() {
+        logger.debug("Проверка списка задач на данную минуту");
         if (!notificationTaskService.sendingScheduledTask().isEmpty()) {
-            for(SendMessage sendMessage: notificationTaskService.sendingScheduledTask()){
+            logger.info("На данное время есть задачи");
+            for (SendMessage sendMessage : notificationTaskService.sendingScheduledTask()) {
                 telegramBot.execute(sendMessage);
             }
         }
